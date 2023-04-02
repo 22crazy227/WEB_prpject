@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if current_user.is_authenticated %}
+        <h1>Профиль
+        {{ current_user.name }}
+        </h1>
+        <h2><a class="btn btn-primary " href="/basket">корзина</a></h2>
+        <h2><a class="navbar-brand" href="/logout">{{ current_user.name }}</a></h2>
+    {% endif %}
+{% endblock %}
