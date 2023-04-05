@@ -1,4 +1,8 @@
-from flask import Flask, render_template, redirect, request, make_response, session, abort, jsonify
+import os
+
+from flask import Flask, render_template, redirect, request, make_response, session, abort, jsonify, Blueprint
+from flask_uploads import UploadSet, IMAGES
+from werkzeug.utils import secure_filename
 
 from data.products import Products
 from data.users import User
@@ -12,7 +16,6 @@ app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
-
 
 def main():
     db_session.global_init("db/shop.db")
@@ -50,22 +53,6 @@ def reqister():
     return render_template('register.html', title='Регистрация', form=form)
 
 
-@app.route("/cookie_test")
-def cookie_test():
-    visits_count = int(request.cookies.get("visits_count", 0))
-    if visits_count:
-        res = make_response(
-            f"Вы пришли на эту страницу {visits_count + 1} раз")
-        res.set_cookie("visits_count", str(visits_count + 1),
-                       max_age=60 * 60 * 24 * 365 * 2)
-    else:
-        res = make_response(
-            "Вы пришли на эту страницу в первый раз за последние 2 года")
-        res.set_cookie("visits_count", '1',
-                       max_age=60 * 60 * 24 * 365 * 2)
-    return res
-
-
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
@@ -94,7 +81,7 @@ def logout():
     return redirect("/")
 
 
-@app.route('/news',  methods=['GET', 'POST'])
+@app.route('/product',  methods=['GET', 'POST'])
 @login_required
 def add_news():
     form = ProductForm()
@@ -104,7 +91,6 @@ def add_news():
         product.title = form.title.data
         product.content = form.content.data
         product.coast = form.coast.data
-        print(form.image.data)
         current_user.product.append(product)
         db_sess.merge(current_user)
         db_sess.commit()
@@ -160,20 +146,6 @@ def edit_news(id):
                            title='Редактирование новости',
                            form=form
                            )
-
-
-"""@blueprint.route('/api/news')
-def get_news():
-    db_sess = db_session.create_session()
-    news = db_sess.query(Products).all()
-    print(item for item in news)
-    return jsonify(
-        {
-            'news':
-                [item.to_dict(only=('title', 'content', 'user.name'))
-                 for item in news]
-        }
-    )"""
 
 
 if __name__ == '__main__':
